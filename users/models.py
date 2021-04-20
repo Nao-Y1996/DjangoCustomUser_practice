@@ -2,7 +2,34 @@ from django.db import models
 from django.contrib.auth.models import (BaseUserManager, AbstractBaseUser)
 
 from phonenumber_field.modelfields import PhoneNumberField
+class CustomUserManager(BaseUserManager):
+    def create_user(self, email, phone_number, username, password=None):
+        if not email:
+            raise ValueError('Users must have an email address')
 
+        user = self.model(
+            email=self.normalize_email(email),
+            username=username,
+        )
+
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+        def create_superuser(self, email, phone_number, username, password=None):
+            """
+        Creates and saves a superuser with the given email, date of
+        birth and password.
+        """
+        user = self.create_user(
+            email,
+            password=password,
+            username=username,
+        )
+        user.is_admin = True
+        user.save(using=self._db)
+        return user
+        
 # Create your models here.
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(
@@ -46,31 +73,3 @@ class CustomUser(AbstractBaseUser):
         return self.is_admin
 
 
-class CustomUserManager(BaseUserManager):
-    def create_user(self, email, phone_number, username, password=None):
-        if not email:
-            raise ValueError('Users must have an email address')
-
-        user = self.model(
-            email=self.normalize_email(email),
-            username=username,
-        )
-
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
-
-        def create_superuser(self, email, phone_number, username, password=None):
-            """
-        Creates and saves a superuser with the given email, date of
-        birth and password.
-        """
-        user = self.create_user(
-            email,
-            password=password,
-            username=username,
-        )
-        user.is_admin = True
-        user.save(using=self._db)
-        return user
-        
