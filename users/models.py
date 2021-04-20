@@ -29,7 +29,7 @@ class CustomUserManager(BaseUserManager):
         user.is_admin = True
         user.save(using=self._db)
         return user
-        
+
 # Create your models here.
 class CustomUser(AbstractBaseUser):
     email = models.EmailField(
@@ -50,8 +50,10 @@ class CustomUser(AbstractBaseUser):
 
     objects = CustomUserManager()
 
-    USERNAME_FIELD = 'email' # パスワードと何で認証するかを決める　ここではパスワードとemail
-    REQUIRED_FIELDS = ['username']
+    # パスワードと何で認証するかを決める　ここではパスワードとemail
+    USERNAME_FIELD = 'email'
+    # 「createsuperuser management」コマンドを使用してユーザーを作成するとき、プロンプ​​トに表示されるフィールド名のリスト。デフォルトは「REQUIRED_FIELDS = [‘username’]」です。
+    REQUIRED_FIELDS = ['username', 'phone_number']
 
     def __str__(self):
         return self.username
