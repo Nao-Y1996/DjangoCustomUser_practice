@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import (BaseUserManager, AbstractBaseUser)
+from django.core.mail import send_mail
 
 from phonenumber_field.modelfields import PhoneNumberField
 class CustomUserManager(BaseUserManager):
@@ -10,14 +11,15 @@ class CustomUserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             username=username,
+            phone_number=phone_number,
         )
 
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-        def create_superuser(self, email, phone_number, username, password=None):
-            """
+    def create_superuser(self, email, phone_number, username, password=None):
+        """
         Creates and saves a superuser with the given email, date of
         birth and password.
         """
@@ -25,6 +27,7 @@ class CustomUserManager(BaseUserManager):
             email,
             password=password,
             username=username,
+            phone_number=phone_number,
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -51,6 +54,7 @@ class CustomUser(AbstractBaseUser):
     objects = CustomUserManager()
 
     # パスワードと何で認証するかを決める　ここではパスワードとemail
+    # AuthenticationFormでの認証は USERNAME_FIELD で指定したユーザー名フィールドを使用する。
     USERNAME_FIELD = 'email'
     # 「createsuperuser management」コマンドを使用してユーザーを作成するとき、プロンプ​​トに表示されるフィールド名のリスト。デフォルトは「REQUIRED_FIELDS = [‘username’]」です。
     REQUIRED_FIELDS = ['username', 'phone_number']
@@ -67,6 +71,10 @@ class CustomUser(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        """Send an email to this user."""
+        send_mail(subject, message, from_email, [self.email], **kwargs)
 
     @property
     def is_staff(self):
